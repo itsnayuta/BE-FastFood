@@ -6,7 +6,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import java.io.File;
 
 @SpringBootApplication
-public class TravelingApplication {
+public class FastFood {
 
 	public static void main(String[] args) {
 		// Kiểm tra nếu .env tồn tại thì mới load
@@ -17,7 +17,7 @@ public class TravelingApplication {
 					System.setProperty(entry.getKey(), entry.getValue())
 			);
 		}
-		SpringApplication.run(TravelingApplication.class, args);
+		SpringApplication.run(FastFood.class, args);
 	}
 
 }
