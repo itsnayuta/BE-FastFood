@@ -1,13 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
-import java.time.Instant;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
