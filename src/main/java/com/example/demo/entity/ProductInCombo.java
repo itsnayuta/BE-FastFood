@@ -1,10 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
-import jakarta.persistence.*;
 
 @Entity
 @Table(name = "ProductInCombo")
