@@ -19,4 +19,11 @@ public class ComboServiceImpl implements ComboService {
         combos = comboRepository.findAll();
         return combos;
     }
+
+    @Override
+    public List<Combo> getAllByType(String type) {
+        List<Combo> combos = new ArrayList<>();
+        combos = comboRepository.findComboByType(type);
+        return combos;
+    }
 }
