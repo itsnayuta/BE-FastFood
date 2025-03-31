@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-import com.example.demo.entity.enums.ComboType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -21,8 +20,7 @@ public class Combo {
     private Float discount;
     private String imageUrl;
     private String servingSize;
-    @Enumerated(EnumType.STRING)
-    private ComboType type;
+    private String type;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
@@ -86,11 +84,11 @@ public class Combo {
         this.servingSize = servingSize;
     }
 
-    public ComboType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(ComboType type) {
+    public void setType(String type) {
         this.type = type;
     }
 

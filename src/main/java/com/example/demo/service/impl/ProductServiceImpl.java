@@ -23,7 +23,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProductById(Long id) {
-        Product product = null;
+        Product product = new Product();
+        product = productRepository.findById(id).get();
         return product;
     }
 
@@ -35,5 +36,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateProduct(Product product) {
 
+    }
+
+    @Override
+    public List<Product> findByCategoryId(Long categoryId) {
+        List<Product> products = new ArrayList<>();
+        products = productRepository.findByCategory_Id(categoryId);
+        return products;
     }
 }
