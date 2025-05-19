@@ -36,3 +36,4 @@ build/
 ### ignore .env
 .env
 *.log
+/src/main/resources/firebase/
