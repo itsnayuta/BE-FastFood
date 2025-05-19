@@ -34,15 +34,37 @@ public class VoucherController {
 
     // API tạo mới voucher
     @PostMapping
-    public ResponseEntity<Voucher> createVoucher(@RequestBody Voucher voucher) {
-        return ResponseEntity.ok(voucherService.createVoucher(voucher));
+    public ResponseEntity<?> createVoucher(@RequestBody Voucher voucher) {
+        try {
+            if (voucher.getCode() == null || voucher.getCode().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Code is required");
+            }
+            if (voucher.getDiscount() == null) {
+                return ResponseEntity.badRequest().body("Discount is required");
+            }
+            
+            Voucher createdVoucher = voucherService.createVoucher(voucher);
+            return ResponseEntity.ok(createdVoucher);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error creating voucher: " + e.getMessage());
+        }
     }
 
-    // API cập nhật voucher theo ID
     @PutMapping("/{id}")
-    public ResponseEntity<Voucher> updateVoucher(@PathVariable Long id, @RequestBody Voucher updatedVoucher) {
-        Voucher voucher = voucherService.updateVoucher(id, updatedVoucher);
-        return (voucher != null) ? ResponseEntity.ok(voucher) : ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateVoucher(@PathVariable Long id, @RequestBody Voucher updatedVoucher) {
+        try {
+            if (updatedVoucher.getCode() == null || updatedVoucher.getCode().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Code is required");
+            }
+            if (updatedVoucher.getDiscount() == null) {
+                return ResponseEntity.badRequest().body("Discount is required");
+            }
+
+            Voucher voucher = voucherService.updateVoucher(id, updatedVoucher);
+            return (voucher != null) ? ResponseEntity.ok(voucher) : ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating voucher: " + e.getMessage());
+        }
     }
 
     // API xóa voucher theo ID
