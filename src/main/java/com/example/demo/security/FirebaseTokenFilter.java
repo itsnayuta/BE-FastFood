@@ -3,6 +3,9 @@ package com.example.demo.security;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +18,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Collections;
 import java.util.List;
 
 @Component
 public class FirebaseTokenFilter extends OncePerRequestFilter {
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @Value("${admin.uid}")
     private String adminUid;
@@ -32,25 +40,32 @@ public class FirebaseTokenFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String idToken = authHeader.substring(7);
+            String token = authHeader.substring(7);
+
             try {
-                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-                String uid = decodedToken.getUid();
+                Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-                List<SimpleGrantedAuthority> authorities = uid.equals(adminUid)
-                        ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                        : List.of(new SimpleGrantedAuthority("ROLE_USER"));
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(key)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
 
+                String uid = claims.get("uid", String.class);
+                String role = claims.get("role", String.class);
+
+                SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.toUpperCase());
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(uid, null, authorities);
+                        new UsernamePasswordAuthenticationToken(uid, null, Collections.singletonList(authority));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (FirebaseAuthException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Firebase token");
+            } catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
                 return;
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 }
