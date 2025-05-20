@@ -10,4 +10,8 @@ public interface UserService {
     User getUser(String accessToken);
     User updateUser(User user);
     String saveProfilePicture(User user, MultipartFile file) throws IOException;
+
+    // === Thêm các method hỗ trợ đăng nhập bằng email/password ===
+    User findByEmail(String email);
+    boolean checkPassword(String rawPassword, String hashedPassword);
 }

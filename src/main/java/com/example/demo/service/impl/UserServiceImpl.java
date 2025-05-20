@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // === Phương thức cũ, dùng Firebase UID để tìm hoặc tạo user ===
     @Override
     public User findOrCreateAndUpdateUser(String firebaseUid, String name, String phoneNumber, String rawPassword, String picture, String email) {
         User user = userRepository.findByFirebaseUid(firebaseUid).orElseGet(() -> {
@@ -72,6 +73,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    // === Chỉnh sửa phương thức getUser để tìm theo uid hoặc email từ token ===
     @Override
     public User getUser(String accessToken) {
         try {
@@ -83,15 +85,40 @@ public class UserServiceImpl implements UserService {
                     .parseClaimsJws(accessToken)
                     .getBody();
 
+            // Cố gắng lấy uid trước
             String firebaseUid = claims.get("uid", String.class);
+            if (firebaseUid != null && !firebaseUid.isBlank()) {
+                return userRepository.findByFirebaseUid(firebaseUid)
+                        .orElseThrow(() -> new RuntimeException("User not found by firebaseUid"));
+            }
 
-            return userRepository.findByFirebaseUid(firebaseUid)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Nếu không có uid thì lấy email
+            String email = claims.getSubject();
+            if (email != null && !email.isBlank()) {
+                return userRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("User not found by email"));
+            }
+
+            throw new RuntimeException("Invalid token payload");
+
         } catch (JwtException e) {
             throw new RuntimeException("Invalid token", e);
         }
     }
 
+    // === Phương thức mới: tìm user bằng email ===
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    // === Phương thức mới: so sánh password raw và hashed ===
+    @Override
+    public boolean checkPassword(String rawPassword, String hashedPassword) {
+        return passwordEncoder.matches(rawPassword, hashedPassword);
+    }
+
+    // === Phương thức updateUser cũ ===
     @Override
     public User updateUser(User user) {
         Optional<User> existingUserOpt = userRepository.findByFirebaseUid(user.getFirebaseUid());
@@ -123,9 +150,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(existingUser);
     }
 
+    // === Phương thức saveProfilePicture cũ ===
     @Override
     public String saveProfilePicture(User user, MultipartFile file) throws IOException {
-        // Save to a local folder, e.g., /uploads
         String uploadDir = "uploads/";
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
@@ -134,13 +161,11 @@ public class UserServiceImpl implements UserService {
         Path filePath = Paths.get(uploadDir + filename);
         Files.write(filePath, file.getBytes());
 
-        // Update user record
-        String pictureUrl = "/uploads/" + filename; // Can be full URL if served statically
+        String pictureUrl = "/uploads/" + filename;
         user.setPicture(pictureUrl);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         return pictureUrl;
     }
-
 }
