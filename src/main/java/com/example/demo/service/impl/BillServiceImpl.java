@@ -33,6 +33,11 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    public List<Bill> getBillsByOrderId(Long orderId) {
+        return billRepository.findByMemberId(orderId);
+    }
+
+    @Override
     public List<Bill> getBillsByPaymentStatus(PaymentStatus status) {
         return billRepository.findByPaymentStatus(status);
     }

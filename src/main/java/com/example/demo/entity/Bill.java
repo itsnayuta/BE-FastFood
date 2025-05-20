@@ -17,6 +17,9 @@ public class Bill {
     @Column(name = "member_id")
     private Long memberId;
 
+    @Column(name = "order_id")
+    private Long orderId;
+    
     @Column(name = "discount")
     private Double discount;
 

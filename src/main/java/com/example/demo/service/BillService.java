@@ -9,6 +9,7 @@ public interface BillService {
     Bill createBill(Bill bill);
     Optional<Bill> getBillById(Long id);
     List<Bill> getBillsByMemberId(Long memberId);
+    List<Bill> getBillsByOrderId(Long orderId);
     List<Bill> getBillsByPaymentStatus(PaymentStatus status);
     Bill updateBill(Bill bill);
     void deleteBill(Long id);
