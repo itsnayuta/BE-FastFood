@@ -1,0 +1,1 @@
+		// Kiểm tra nếu .env tồn tại thì mới load
