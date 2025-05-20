@@ -17,6 +17,15 @@ public class User {
 
     private String email;
 
+    private String phoneNumber;
+
+    private String hashedPassword;
+
+    private String picture;
+
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -60,6 +69,34 @@ public class User {
         this.email = email;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public String getHashedPassword() {
+        return hashedPassword;
+    }
+
+    public void setHashedPassword(String hashedPassword) {
+        this.hashedPassword = hashedPassword;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -76,3 +113,4 @@ public class User {
         this.updatedAt = updatedAt;
     }
 }
+
