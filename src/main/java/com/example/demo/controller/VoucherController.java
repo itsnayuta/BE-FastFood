@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Voucher;
 import com.example.demo.service.VoucherService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,5 +51,17 @@ public class VoucherController {
     public ResponseEntity<Void> deleteVoucher(@PathVariable Long id) {
         boolean deleted = voucherService.deleteVoucher(id);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/code/{code}")
+    public ResponseEntity<Voucher> getVoucherByCode(@PathVariable String code) {
+        Optional<Voucher> voucherOpt = voucherService.getVoucherByCode(code);
+
+        if (voucherOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+
+        return ResponseEntity.ok(voucherOpt.get());
     }
 }

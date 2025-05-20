@@ -37,6 +37,7 @@ public class AuthController {
             String picture = decodedToken.getPicture();
             String password = request.getPassword() != null ? request.getPassword() : "";
             String email = decodedToken.getEmail();
+            System.out.println("decode " + decodedToken);
 
             User user = userService.findOrCreateAndUpdateUser(uid, name, phoneNumber, password, picture, email);
 

@@ -33,6 +33,7 @@ public class SecurityConfig {
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
