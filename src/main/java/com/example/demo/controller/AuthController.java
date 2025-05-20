@@ -29,6 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody IdTokenRequest request) {
+        System.out.println("HIIIIIIIIIIIIIIIIIIII");
         try {
             FirebaseToken decodedToken = firebaseAuth.verifyIdToken(request.getIdToken());
             String uid = decodedToken.getUid();
@@ -37,6 +38,7 @@ public class AuthController {
             String picture = decodedToken.getPicture();
             String password = request.getPassword() != null ? request.getPassword() : "";
             String email = decodedToken.getEmail();
+            System.out.println("decode " + decodedToken);
 
             User user = userService.findOrCreateAndUpdateUser(uid, name, phoneNumber, password, picture, email);
 

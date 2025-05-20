@@ -3,9 +3,14 @@ package com.example.demo.service.impl;
 import com.example.demo.config.VNPayConfig;
 import com.example.demo.entity.Bill;
 import com.example.demo.entity.enums.PaymentMethod;
+import com.example.demo.entity.enums.PaymentStatus;
 import com.example.demo.service.PaymentService;
+import com.example.demo.service.BillService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -17,21 +22,30 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
+    private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     @Autowired
     private VNPayConfig vnPayConfig;
 
+    @Autowired
+    private BillService billService;
+
     @Override
-    public String processPayment(Bill bill) {
-        if (bill.getPaymentMethod().equals(PaymentMethod.CASH.name())) {
-            // Xử lý thanh toán tiền mặt
-            updatePaymentStatus(bill, "PENDING");
-            return "Thanh toán tiền mặt đã được xác nhận";
-        } else if (bill.getPaymentMethod().equals(PaymentMethod.VNPAY.name())) {
-            // Tạo URL thanh toán VNPay
-            return createVNPayUrl(bill);
+    public ResponseEntity<?> processPayment(Bill bill) {
+        if (PaymentMethod.CASH.equals(bill.getPaymentMethod())) {
+            bill.setPaymentStatus(PaymentStatus.PENDING);
+            Bill savedBill = billService.createBill(bill);
+            return ResponseEntity.ok("Payment pending - Cash on delivery");
+        } else if (PaymentMethod.VNPAY.equals(bill.getPaymentMethod())) {
+            bill.setPaymentStatus(PaymentStatus.PENDING);
+            Bill savedBill = billService.createBill(bill);
+            String paymentUrl = createVNPayUrl(savedBill);
+            if (paymentUrl != null) {
+                return ResponseEntity.ok(paymentUrl);
+            }
+            return ResponseEntity.badRequest().body("Failed to create payment URL");
         }
-        return null;
+        return ResponseEntity.badRequest().body("Invalid payment method");
     }
 
     @Override
@@ -62,21 +76,19 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    @Override
-    public void updatePaymentStatus(Bill bill, String status) {
-        bill.setPaymentStatus(status);
-        // TODO: Lưu trạng thái vào database
-    }
-
     private String createVNPayUrl(Bill bill) {
         try {
             String vnp_Version = "2.1.0";
             String vnp_Command = "pay";
-            String vnp_OrderInfo = "Thanh toan don hang " + bill.getOrderId();
+            String vnp_OrderInfo = "Thanh toan don hang " + bill.getId();
             String vnp_OrderType = "other";
             String vnp_Locale = "vn";
             String vnp_CurrCode = "VND";
-            String vnp_TxnRef = bill.getOrderId() + "_" + System.currentTimeMillis();
+            
+            // Generate unique transaction reference by combining bill ID and timestamp
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String vnp_TxnRef = bill.getId() + "_" + timestamp;
+            
             String vnp_IpAddr = "127.0.0.1";
 
             Map<String, String> vnp_Params = new HashMap<>();
@@ -92,6 +104,9 @@ public class PaymentServiceImpl implements PaymentService {
             vnp_Params.put("vnp_Locale", vnp_Locale);
             vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getVnp_ReturnUrl());
             vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+
+            // Log URL trả về
+            logger.info("Return URL: {}", vnPayConfig.getVnp_ReturnUrl());
 
             Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -128,7 +143,9 @@ public class PaymentServiceImpl implements PaymentService {
             String vnp_SecureHash = hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
             queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
 
-            return vnPayConfig.getVnp_Url() + "?" + queryUrl;
+            String finalUrl = vnPayConfig.getVnp_Url() + "?" + queryUrl;
+            logger.info("Final payment URL: {}", finalUrl);
+            return finalUrl;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
