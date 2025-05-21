@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,17 +16,16 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
+    private final JwtService jwtService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
+    // Constructor injection cho các dependency
     @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtService jwtService, BCryptPasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
-
-    private BCryptPasswordEncoder passwordEncoder;
-
 
     // === Bỏ phần login Firebase ===
     /*
@@ -170,7 +169,7 @@ public class AuthController {
         }
     }
     */
-    public class SignupRequest {
+    public static class SignupRequest {
         private String email;
         private String password;
         private String name; // Optional
