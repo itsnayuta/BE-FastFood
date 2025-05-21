@@ -5,8 +5,9 @@ import com.example.demo.service.JwtService;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,9 @@ public class AuthController {
     public AuthController(UserService userService) {
         this.userService = userService;
     }
+
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     // === Bỏ phần login Firebase ===
     /*
@@ -52,17 +56,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginByEmail(@RequestBody EmailLoginRequest request) {
         try {
-            // Tìm user theo email
+            // Find user by email
             User user = userService.findByEmail(request.getEmail());
             if (user == null) {
                 return ResponseEntity.status(401).body("Email không tồn tại");
             }
-            // Kiểm tra password (giả sử userService có phương thức checkPassword)
-            if (!userService.checkPassword(request.getPassword(), user.getHashedPassword())) {
+
+            // Check password
+            if (!passwordEncoder.matches(request.getPassword(), user.getHashedPassword())) {
                 return ResponseEntity.status(401).body("Mật khẩu không đúng");
             }
 
-            // Tạo access token và refresh token
+            // Generate tokens
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
 
@@ -74,9 +79,45 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Server error");
+            return ResponseEntity.status(500).body("Lỗi máy chủ");
         }
     }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
+        try {
+            // Check if email already exists
+            if (userService.findByEmail(request.getEmail()) != null) {
+                return ResponseEntity.status(400).body("Email đã được sử dụng");
+            }
+
+            // Hash password
+            String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+            // Create and save user
+            User newUser = new User();
+            newUser.setEmail(request.getEmail());
+            newUser.setHashedPassword(hashedPassword);
+            newUser.setDisplayName(request.getName());
+
+            User savedUser = userService.addUser(newUser);
+
+            // Generate tokens
+            String accessToken = jwtService.generateAccessToken(savedUser);
+            String refreshToken = jwtService.generateRefreshToken(savedUser);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("accessToken", accessToken);
+            response.put("refreshToken", refreshToken);
+            response.put("user", savedUser);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Lỗi máy chủ");
+        }
+    }
+
 
     // === Request body cho login bằng email + password ===
     public static class EmailLoginRequest {
@@ -129,4 +170,22 @@ public class AuthController {
         }
     }
     */
+    public class SignupRequest {
+        private String email;
+        private String password;
+        private String name; // Optional
+
+        public String getEmail(){
+            return email;
+        }
+
+        public String getPassword(){
+            return password;
+        }
+
+        public String getName(){
+            return name;
+        }
+    }
+
 }
