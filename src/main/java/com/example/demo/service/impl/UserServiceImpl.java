@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
@@ -21,6 +22,7 @@ import java.nio.file.Paths;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -167,5 +169,20 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return pictureUrl;
+    }
+
+    @Override
+    public List<User> getAllUsers(){
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void deleteUserById(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User addUser(User user) {
+        return userRepository.save(user);
     }
 }
