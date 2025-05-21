@@ -5,10 +5,8 @@ import com.example.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -36,4 +34,25 @@ public class ProductController {
         Product product = productService.getProductById(productId);
         return new ResponseEntity<>(product, HttpStatus.OK);
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("")
+    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
+        Product addedProduct = productService.addProduct(product);
+        return new ResponseEntity<>(addedProduct, HttpStatus.CREATED);
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable("id") Long id, @RequestBody Product product) {
+        product.setId(id);
+        Product updatedProduct = productService.updateProduct(product);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable("id") Long id) {
+        productService.deleteProductById(id);
+        return new ResponseEntity<>("successfully removed item", HttpStatus.OK);
+    }
+
 }
