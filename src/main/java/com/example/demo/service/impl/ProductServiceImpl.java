@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void updateProduct(Long id, Product updatedProduct) {
+    public Product updateProduct(Long id, Product updatedProduct) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isPresent()) {
             Product existingProduct = optionalProduct.get();
@@ -44,7 +44,8 @@ public class ProductServiceImpl implements ProductService {
             existingProduct.setDescription(updatedProduct.getDescription());
             existingProduct.setPrice(updatedProduct.getPrice());
             existingProduct.setCategory(updatedProduct.getCategory());
-            productRepository.save(existingProduct);
+             return productRepository.save(existingProduct);
+
         } else {
             throw new RuntimeException("Product not found with ID: " + id);
         }
