@@ -1,13 +1,17 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ComboDTO;
 import com.example.demo.dto.ProductDTO;
 import com.example.demo.entity.Category;
+import com.example.demo.entity.Combo;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
 import com.example.demo.service.ProductService;
 import com.example.demo.service.UserService;
 import com.example.demo.service.impl.CategoryServiceImpl;
+import com.example.demo.service.impl.ComboServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +29,9 @@ public class AdminController {
 
     @Autowired
     private CategoryServiceImpl categoryService;
+
+    @Autowired
+    private ComboServiceImpl comboService;
 
     @GetMapping("/get-all-users")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -93,6 +100,18 @@ public class AdminController {
         Product updatedProduct = productService.updateProduct(id, existingProduct);
 
         return ResponseEntity.ok(updatedProduct);
+    }
+
+    @PostMapping("/combos")
+    public ResponseEntity<Combo> createComboWithProducts(@RequestBody ComboDTO request) {
+        Combo createdCombo = comboService.createComboWithProducts(request);
+        return ResponseEntity.ok(createdCombo);
+    }
+
+    @DeleteMapping("/combos/{id}")
+    public ResponseEntity<String> deleteCombo(@PathVariable Long id) {
+        comboService.deleteCombo(id);
+        return new ResponseEntity<>("successfully removed", HttpStatus.OK);
     }
 
 }
