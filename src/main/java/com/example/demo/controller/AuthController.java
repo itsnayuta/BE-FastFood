@@ -135,29 +135,34 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
+            // Log the raw request
+            System.out.println("Signup request: " + request);
+
             // Check if email already exists
             if (userService.findByEmail(request.getEmail()) != null) {
                 return ResponseEntity.status(400).body(Map.of("message", "Email đã được sử dụng"));
             }
 
-            System.out.println("Received password: " + request.getPassword());
+            // Validate phone number (basic check — does not contain '@')
+            if (request.getPhoneNumber() != null && request.getPhoneNumber().contains("@")) {
+                return ResponseEntity.status(400).body(Map.of("message", "Số điện thoại không hợp lệ"));
+            }
 
             // Hash password
             String hashedPassword = passwordEncoder.encode(request.getPassword());
 
-            // Create and save user
+            // Create and populate user entity
             User newUser = new User();
             newUser.setEmail(request.getEmail());
             newUser.setHashedPassword(hashedPassword);
             newUser.setDisplayName(request.getName());
+            newUser.setPhoneNumber(request.getPhoneNumber());
+
+            System.out.println("User to be saved: " + newUser);
 
             User savedUser = userService.addUser(newUser);
 
-            System.out.println("Saved user: " + savedUser);
-
-            // Defensive check - ensure user ID is not null (important for tokens)
             if (savedUser.getId() == null) {
-                System.err.println("Saved user ID is null, cannot generate token.");
                 return ResponseEntity.status(500).body(Map.of("message", "Lỗi máy chủ - user ID null"));
             }
 
@@ -165,12 +170,7 @@ public class AuthController {
             String accessToken = jwtService.generateAccessToken(savedUser);
             String refreshToken = jwtService.generateRefreshToken(savedUser);
 
-            System.out.println("Generated accessToken: " + accessToken);
-            System.out.println("Generated refreshToken: " + refreshToken);
-
-            // Validate tokens are generated
             if (accessToken == null || refreshToken == null) {
-                System.err.println("Token generation failed.");
                 return ResponseEntity.status(500).body(Map.of("message", "Không thể tạo token"));
             }
 
@@ -185,6 +185,7 @@ public class AuthController {
             return ResponseEntity.status(500).body(Map.of("message", "Lỗi máy chủ"));
         }
     }
+
 
 
     public static class EmailLoginRequest {
@@ -211,21 +212,32 @@ public class AuthController {
         private String name; // Optional
         private String phoneNumber;
 
-        public String getEmail(){
+        public String getEmail() {
             return email;
         }
 
-        public String getPassword(){
+        public String getPassword() {
             return password;
         }
 
-        public String getName(){
+        public String getName() {
             return name;
         }
 
-        public String getPhoneNumber(){
+        public String getPhoneNumber() {
             return phoneNumber;
         }
+
+        @Override
+        public String toString() {
+            return "SignupRequest{" +
+                    "email='" + email + '\'' +
+                    ", password='" + password + '\'' +
+                    ", name='" + name + '\'' +
+                    ", phoneNumber='" + phoneNumber + '\'' +
+                    '}';
+        }
     }
+
 
 }

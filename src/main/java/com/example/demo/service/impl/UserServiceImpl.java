@@ -80,26 +80,35 @@ public class UserServiceImpl implements UserService {
     public User getUser(String accessToken) {
         try {
             Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-
+            System.out.println("key" + key);
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(accessToken)
                     .getBody();
 
-            // Cố gắng lấy uid trước
             String firebaseUid = claims.get("uid", String.class);
+            System.out.println("firebaseUid" + firebaseUid);
+
             if (firebaseUid != null && !firebaseUid.isBlank()) {
+                System.out.println("here we go");
+
                 return userRepository.findByFirebaseUid(firebaseUid)
                         .orElseThrow(() -> new RuntimeException("User not found by firebaseUid"));
             }
 
-            // Nếu không có uid thì lấy email
-            String email = claims.getSubject();
+            String email = claims.get("email", String.class); // Lấy email thay vì firebaseUid
+
+            System.out.println("email" + email);
+
             if (email != null && !email.isBlank()) {
+                System.out.println("here we are");
+
                 return userRepository.findByEmail(email)
                         .orElseThrow(() -> new RuntimeException("User not found by email"));
             }
+
+            System.out.println("so sad");
 
             throw new RuntimeException("Invalid token payload");
 

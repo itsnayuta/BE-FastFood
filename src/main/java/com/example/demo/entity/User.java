@@ -76,7 +76,6 @@ public class User {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-
     public String getPicture() {
         return picture;
     }

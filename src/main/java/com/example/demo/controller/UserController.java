@@ -29,6 +29,7 @@ public class UserController {
     @GetMapping("")
     public ResponseEntity<User> getUser(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        System.out.println("access " + token);
         User user = userService.getUser(token);
         return ResponseEntity.ok(user);
     }
