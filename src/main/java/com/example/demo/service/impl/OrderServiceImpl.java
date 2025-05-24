@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Order;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +13,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
-    @Autowired
     public OrderServiceImpl(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
@@ -35,20 +33,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrder(Long id, Order order) {
+    public Order updateOrder(Long id, Order updatedOrder) {
         return orderRepository.findById(id)
-            .map(existingOrder -> {
-                existingOrder.setMemberId(order.getMemberId());
-                existingOrder.setStatus(order.getStatus());
-                existingOrder.setNote(order.getNote());
-                // Không cập nhật createdAt
-                return orderRepository.save(existingOrder);
-            })
-            .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
+                .map(existingOrder -> {
+                    existingOrder.setMemberId(updatedOrder.getMemberId());
+                    existingOrder.setStatus(updatedOrder.getStatus());
+                    existingOrder.setNote(updatedOrder.getNote());
+                    return orderRepository.save(existingOrder);
+                })
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
     }
 
     @Override
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Order> getOrdersByMemberId(Long memberId) {
+        return orderRepository.findByMemberId(memberId);
     }
 }

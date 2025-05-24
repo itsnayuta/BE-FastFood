@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Order;
 import com.example.demo.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +13,6 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @Autowired
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
@@ -53,4 +51,11 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<List<Order>> getOrdersByMemberId(@PathVariable Long memberId) {
+        List<Order> orders = orderService.getOrdersByMemberId(memberId);
+        return ResponseEntity.ok(orders);
+    }
+
 }
